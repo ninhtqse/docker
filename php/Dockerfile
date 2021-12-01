@@ -27,6 +27,10 @@ RUN apt-get update && apt-get install -y \
 		libpng-dev
 RUN docker-php-ext-install mysqli pdo pdo_mysql
 
+#INSTALL PACKAGE CAKEPHP
+RUN docker-php-ext-install \
+        intl
+        
 #ZIP
 COPY --from=mlocati/php-extension-installer /usr/bin/install-php-extensions /usr/bin/
 RUN install-php-extensions zip
@@ -60,6 +64,8 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) gd
+
+COPY config/php.ini /usr/local/etc/php/
 
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer

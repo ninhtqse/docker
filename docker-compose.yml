@@ -30,7 +30,7 @@ services:
                 ipv4_address: 10.201.0.2
     php:
         build:
-            context: .
+            context: ./php
             dockerfile: Dockerfile
         container_name: c-php
         restart: always
