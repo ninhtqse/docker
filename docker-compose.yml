@@ -24,10 +24,42 @@ services:
             - ./nginx/log/nginx:/var/log/nginx
         links:
             - php
+            - php7.0
             - mysql
+            - mysql5.6
         networks:
             webphp:
                 ipv4_address: 10.201.0.2
+    php7.0:
+        build:
+            context: ./php
+            dockerfile: Dockerfile7.0
+        container_name: c-php-7.0
+        restart: always
+        user: www-data
+        volumes:
+            - ./code:/var/www
+        links: 
+            - mysql5.6
+            - redis
+        networks:
+            webphp:
+                ipv4_address: 10.201.0.3
+    mysql5.6: 
+        container_name: c-mysql-5.6
+        image: mysql:5.6
+        command: --default-authentication-plugin=mysql_native_password
+        ports: 
+            - "3308:3306"
+        restart: always
+        volumes:
+            - ./mysql5:/var/lib/mysql
+        environment:
+            - MYSQL_DATABASE=nicjp
+            - MYSQL_ROOT_PASSWORD=123456
+        networks:
+            webphp:
+                ipv4_address: 10.201.0.4      
     php:
         build:
             context: ./php
@@ -37,14 +69,14 @@ services:
         user: www-data
         volumes:
             - ./code:/var/www
-            - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+            # - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
             - ./php/cron:/var/spool/cron/crontabs
         links: 
             - mysql
             - redis
         networks:
             webphp:
-                ipv4_address: 10.201.0.3
+                ipv4_address: 10.201.0.5
     mysql: 
         container_name: c-mysql
         image: mysql:latest
@@ -59,22 +91,22 @@ services:
             - MYSQL_ROOT_PASSWORD=123456
         networks:
             webphp:
-                ipv4_address: 10.201.0.4
-    # phpmyadmin:
-    #     image: phpmyadmin/phpmyadmin
-    #     container_name: 'c-phpmyadmin'
-    #     links:
-    #       - mysql
-    #     environment:
-    #       PMA_HOST: mysql
-    #       PMA_PORT: 3306
-    #     ports:
-    #       - '8080:80'
-    #     volumes: 
-    #       - /sessions
-    #     networks:
-    #         webphp:
-    #             ipv4_address: 10.201.0.5
+                ipv4_address: 10.201.0.6
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: 'c-phpmyadmin'
+        links:
+          - mysql
+        environment:
+          PMA_HOST: mysql
+          PMA_PORT: 3306
+        ports:
+          - '8888:80'
+        volumes: 
+          - /sessions
+        networks:
+            webphp:
+                ipv4_address: 10.201.0.7
     redis:
         container_name: c-redis
         image: redis
@@ -85,7 +117,7 @@ services:
             - '6379:6379'
         networks:
             webphp:
-                ipv4_address: 10.201.0.6
+                ipv4_address: 10.201.0.8
     # memcached:
     #     image: memcached
     #     ports:
@@ -102,3 +134,16 @@ services:
     #     volumes:
     #         - /usr/src/app/node_modules
     #         - ./node:/usr/src/app
+    
+    # mercure:
+    #    image: dunglas/mercure
+    #    environment:
+    #        DEBUG: "debug"
+    #        SERVER_NAME: ':80'
+    #        MERCURE_PUBLISHER_JWT_KEY: '~my-jwt-key-here~'
+    #        MERCURE_SUBSCRIBER_JWT_KEY: '~my-jwt-key-here~'
+    #        MERCURE_EXTRA_DIRECTIVES: |-
+    #          cors_origins "http://127.0.0.1"
+    #          anonymous
+    #    ports:
+    #        - "9000:80"
