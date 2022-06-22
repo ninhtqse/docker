@@ -118,6 +118,29 @@ services:
         networks:
             webphp:
                 ipv4_address: 10.201.0.8
+    elasticsearch:
+        container_name: c-elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+        environment:
+            - xpack.security.enabled=false
+            - "discovery.type=single-node"
+        networks:
+            webphp:
+                ipv4_address: 10.201.0.9
+        ports:
+            - 9200:9200
+    kibana:
+        container_name: c-kibana
+        image: docker.elastic.co/kibana/kibana:7.11.0
+        environment:
+            - ELASTICSEARCH_HOSTS=http://c-elasticsearch:9200
+        networks:
+            webphp:
+                ipv4_address: 10.201.0.10
+        depends_on:
+            - elasticsearch
+        ports:
+            - 5601:5601
     # memcached:
     #     image: memcached
     #     ports:
