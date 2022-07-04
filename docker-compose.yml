@@ -22,6 +22,11 @@ services:
             - ./nginx/sites-enabled:/etc/nginx/sites-enabled
             - ./nginx/ssl:/etc/nginx/ssl
             - ./nginx/log/nginx:/var/log/nginx
+        healthcheck:
+            test: ["CMD", "service", "nginx", "status"]
+            interval: 30s
+            timeout: 10s
+            retries: 5
         links:
             - php
             - php7.0
