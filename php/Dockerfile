@@ -67,6 +67,11 @@ RUN apt-get update && apt-get install -y \
 
 COPY config/php.ini /usr/local/etc/php/
 
+#Install memcache
+RUN apt-get update && apt-get install -y libz-dev libmemcached-dev && rm -r /var/lib/apt/lists/*
+RUN pecl install memcached
+RUN echo extension=memcached.so >> /usr/local/etc/php/conf.d/memcached.ini
+
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
