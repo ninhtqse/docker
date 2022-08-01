@@ -29,42 +29,42 @@ services:
             retries: 5
         links:
             - php
-            - php7.0
+            # - php7.0
             - mysql
-            - mysql5.6
+            # - mysql5.6
         networks:
             webphp:
                 ipv4_address: 10.201.0.2
-    php7.0:
-        build:
-            context: ./php
-            dockerfile: Dockerfile7.0
-        container_name: c-php-7.0
-        restart: always
-        user: www-data
-        volumes:
-            - ./code:/var/www
-        links: 
-            - mysql5.6
-            - redis
-        networks:
-            webphp:
-                ipv4_address: 10.201.0.3
-    mysql5.6: 
-        container_name: c-mysql-5.6
-        image: mysql:5.6
-        command: --default-authentication-plugin=mysql_native_password
-        ports: 
-            - "3308:3306"
-        restart: always
-        volumes:
-            - ./mysql5:/var/lib/mysql
-        environment:
-            - MYSQL_DATABASE=nicjp
-            - MYSQL_ROOT_PASSWORD=123456
-        networks:
-            webphp:
-                ipv4_address: 10.201.0.4      
+    # php7.0:
+    #     build:
+    #         context: ./php
+    #         dockerfile: Dockerfile7.0
+    #     container_name: c-php-7.0
+    #     restart: always
+    #     user: www-data
+    #     volumes:
+    #         - ./code:/var/www
+    #     links: 
+    #         - mysql5.6
+    #         - redis
+    #     networks:
+    #         webphp:
+    #             ipv4_address: 10.201.0.3
+    # mysql5.6: 
+    #     container_name: c-mysql-5.6
+    #     image: mysql:5.6
+    #     command: --default-authentication-plugin=mysql_native_password
+    #     ports: 
+    #         - "3308:3306"
+    #     restart: always
+    #     volumes:
+    #         - ./mysql5:/var/lib/mysql
+    #     environment:
+    #         - MYSQL_DATABASE=nicjp
+    #         - MYSQL_ROOT_PASSWORD=123456
+    #     networks:
+    #         webphp:
+    #             ipv4_address: 10.201.0.4      
     php:
         build:
             context: ./php
@@ -79,6 +79,7 @@ services:
         links: 
             - mysql
             - redis
+            - memcached
         networks:
             webphp:
                 ipv4_address: 10.201.0.5
@@ -128,29 +129,29 @@ services:
         networks:
             webphp:
                 ipv4_address: 10.201.0.8
-    elasticsearch:
-        container_name: c-elasticsearch
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
-        environment:
-            - xpack.security.enabled=false
-            - "discovery.type=single-node"
-        networks:
-            webphp:
-                ipv4_address: 10.201.0.9
-        ports:
-            - 9200:9200
-    kibana:
-        container_name: c-kibana
-        image: docker.elastic.co/kibana/kibana:7.11.0
-        environment:
-            - ELASTICSEARCH_HOSTS=http://c-elasticsearch:9200
-        networks:
-            webphp:
-                ipv4_address: 10.201.0.10
-        depends_on:
-            - elasticsearch
-        ports:
-            - 5601:5601
+    # elasticsearch:
+    #     container_name: c-elasticsearch
+    #     image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
+    #     environment:
+    #         - xpack.security.enabled=false
+    #         - "discovery.type=single-node"
+    #     networks:
+    #         webphp:
+    #             ipv4_address: 10.201.0.9
+    #     ports:
+    #         - 9200:9200
+    # kibana:
+    #     container_name: c-kibana
+    #     image: docker.elastic.co/kibana/kibana:7.11.0
+    #     environment:
+    #         - ELASTICSEARCH_HOSTS=http://c-elasticsearch:9200
+    #     networks:
+    #         webphp:
+    #             ipv4_address: 10.201.0.10
+    #     depends_on:
+    #         - elasticsearch
+    #     ports:
+    #         - 5601:5601
     # cadvisor:
     #     image: gcr.io/google-containers/cadvisor:latest
     #     container_name: c-cadvisor
@@ -181,10 +182,14 @@ services:
     #     restart: always
     #     depends_on:
     #         - prometheus
-    # memcached:
-    #     image: memcached
-    #     ports:
-    #         - "11211:11211"
+    memcached:
+        container_name: c-memcached
+        image: memcached
+        ports:
+            - "11211:11211"
+        networks:
+            webphp:
+                ipv4_address: 10.201.0.9
     # node:
     #     container_name: c-node
     #     build:
