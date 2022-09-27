@@ -83,6 +83,24 @@ services:
         networks:
             webphp:
                 ipv4_address: 10.201.0.5
+    php8.1:
+        build:
+            context: ./php
+            dockerfile: Dockerfile8.1
+        container_name: c-php-8
+        restart: always
+        user: www-data
+        volumes:
+            - ./code:/var/www
+            - ./php/crontab:/etc/cron.d/crontab
+            - ./php/config8.1 /usr/local/etc/php/
+        links: 
+            - mysql
+            - redis
+            - memcached
+        networks:
+            webphp:
+                ipv4_address: 10.201.0.10
     mysql: 
         container_name: c-mysql
         image: mysql:latest
