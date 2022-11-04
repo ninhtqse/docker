@@ -1,4 +1,5 @@
-version: '2.0'
+version: "3.7"
+
 networks:
   webphp:
     driver: bridge
@@ -22,49 +23,36 @@ services:
             - ./nginx/sites-enabled:/etc/nginx/sites-enabled
             - ./nginx/ssl:/etc/nginx/ssl
             - ./nginx/log/nginx:/var/log/nginx
+        links:
+            - php
+            - mysql
         healthcheck:
             test: ["CMD", "service", "nginx", "status"]
             interval: 30s
             timeout: 10s
             retries: 5
-        links:
-            - php
-            # - php7.0
-            - mysql
-            # - mysql5.6
         networks:
             webphp:
                 ipv4_address: 10.201.0.2
-    # php7.0:
-    #     build:
-    #         context: ./php
-    #         dockerfile: Dockerfile7.0
-    #     container_name: c-php-7.0
-    #     restart: always
-    #     user: www-data
-    #     volumes:
-    #         - ./code:/var/www
-    #     links: 
-    #         - mysql5.6
-    #         - redis
-    #     networks:
-    #         webphp:
-    #             ipv4_address: 10.201.0.3
-    # mysql5.6: 
-    #     container_name: c-mysql-5.6
-    #     image: mysql:5.6
-    #     command: --default-authentication-plugin=mysql_native_password
-    #     ports: 
-    #         - "3308:3306"
-    #     restart: always
-    #     volumes:
-    #         - ./mysql5:/var/lib/mysql
-    #     environment:
-    #         - MYSQL_DATABASE=nicjp
-    #         - MYSQL_ROOT_PASSWORD=123456
-    #     networks:
-    #         webphp:
-    #             ipv4_address: 10.201.0.4      
+    apache:
+        build:
+            context: ./apache
+            dockerfile: Dockerfile
+        restart: always
+        container_name: c-apache
+        volumes:
+            - ./code:/var/www
+            - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
+            - ./apache/sites-enabled:/usr/local/apache2/conf/sites-enabled
+        depends_on:
+            - php
+            - php8
+            - mysql
+        ports:
+            - "82:80"
+        networks:
+            webphp:
+                ipv4_address: 10.201.0.3
     php:
         build:
             context: ./php
@@ -74,63 +62,49 @@ services:
         user: www-data
         volumes:
             - ./code:/var/www
-            # - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
-            - ./php/cron:/var/spool/cron/crontabs
+            - ./php/crontab:/etc/cron.d/crontab
         links: 
             - mysql
             - redis
-            - memcached
+            # - memcached
         networks:
             webphp:
-                ipv4_address: 10.201.0.5
-    php8.1:
+                ipv4_address: 10.201.0.4
+    php8:
         build:
             context: ./php
-            dockerfile: Dockerfile8.1
+            dockerfile: Dockerfile8
         container_name: c-php-8
         restart: always
         user: www-data
         volumes:
             - ./code:/var/www
             - ./php/crontab:/etc/cron.d/crontab
-            - ./php/config8.1 /usr/local/etc/php/
         links: 
             - mysql
             - redis
-            - memcached
+            # - memcached
         networks:
             webphp:
-                ipv4_address: 10.201.0.10
+                ipv4_address: 10.201.0.5
     mysql: 
+        build:
+            context: ./mysql
+            dockerfile: Dockerfile
         container_name: c-mysql
-        image: mysql:latest
         command: --default-authentication-plugin=mysql_native_password
         ports: 
             - "3309:3306"
         restart: always
         volumes:
-            - ./mysql:/var/lib/mysql
+            - ./mysql/config/mysql.cnf:/etc/mysql/conf.d/custom.cnf:ro
+            - ./mysql/dbdata:/var/lib/mysql
         environment:
             - MYSQL_DATABASE=projectlaravel
             - MYSQL_ROOT_PASSWORD=123456
         networks:
             webphp:
                 ipv4_address: 10.201.0.6
-    phpmyadmin:
-        image: phpmyadmin/phpmyadmin
-        container_name: 'c-phpmyadmin'
-        links:
-          - mysql
-        environment:
-          PMA_HOST: mysql
-          PMA_PORT: 3306
-        ports:
-          - '8888:80'
-        volumes: 
-          - /sessions
-        networks:
-            webphp:
-                ipv4_address: 10.201.0.7
     redis:
         container_name: c-redis
         image: redis
@@ -146,13 +120,51 @@ services:
             retries: 5
         networks:
             webphp:
-                ipv4_address: 10.201.0.8
+                ipv4_address: 10.201.0.7
+    # memcached:
+    #     container_name: c-memcached
+    #     image: memcached
+    #     ports:
+    #         - "11211:11211"
+    #     networks:
+    #         webphp:
+    #             ipv4_address: 10.201.0.8
+    # mariadb:
+    #     image: mariadb
+    #     tty: true
+    #     restart: always
+    #     container_name: c-mariadb
+    #     ports:
+    #         - '3307:3306'
+    #     volumes:
+    #         - './mysql/config/mariadb.cnf:/etc/mysql/conf.d/custom.cnf:ro'
+    #         - './mysql/dbdata:/var/lib/mysql'
+    #     environment:
+    #         - MYSQL_PASSWORD=root
+    #         - MYSQL_ROOT_PASSWORD=123456
+    #     networks:
+    #         webphp:
+    #             ipv4_address: 10.201.0.9
+    # postgres:
+    #     image: postgres:13-alpine
+    #     container_name: c-postgres
+    #     tty: true
+    #     restart: always
+    #     ports:
+    #         - "5432:5432"
+    #     volumes:
+    #         - "./postgres/dbdata:/var/lib/postgresql/data"
+    #     environment:
+    #         - POSTGRES_USER=root
+    #         - POSTGRES_PASSWORD=123456
+    #==============> STATISTICAL <=================
     # elasticsearch:
     #     container_name: c-elasticsearch
     #     image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
     #     environment:
     #         - xpack.security.enabled=false
     #         - "discovery.type=single-node"
+    #     restart: unless-stopped
     #     networks:
     #         webphp:
     #             ipv4_address: 10.201.0.9
@@ -163,6 +175,7 @@ services:
     #     image: docker.elastic.co/kibana/kibana:7.11.0
     #     environment:
     #         - ELASTICSEARCH_HOSTS=http://c-elasticsearch:9200
+    #     restart: unless-stopped
     #     networks:
     #         webphp:
     #             ipv4_address: 10.201.0.10
@@ -200,36 +213,3 @@ services:
     #     restart: always
     #     depends_on:
     #         - prometheus
-    memcached:
-        container_name: c-memcached
-        image: memcached
-        ports:
-            - "11211:11211"
-        networks:
-            webphp:
-                ipv4_address: 10.201.0.9
-    # node:
-    #     container_name: c-node
-    #     build:
-    #         context: ./node
-    #         dockerfile: Dockerfile
-    #     environment:
-    #         - CHOKIDAR_USEPOLLING=true
-    #     ports: 
-    #         - "3000:3000"
-    #     volumes:
-    #         - /usr/src/app/node_modules
-    #         - ./node:/usr/src/app
-    
-    # mercure:
-    #    image: dunglas/mercure
-    #    environment:
-    #        DEBUG: "debug"
-    #        SERVER_NAME: ':80'
-    #        MERCURE_PUBLISHER_JWT_KEY: '~my-jwt-key-here~'
-    #        MERCURE_SUBSCRIBER_JWT_KEY: '~my-jwt-key-here~'
-    #        MERCURE_EXTRA_DIRECTIVES: |-
-    #          cors_origins "http://127.0.0.1"
-    #          anonymous
-    #    ports:
-    #        - "9000:80"
