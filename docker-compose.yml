@@ -25,6 +25,7 @@ services:
             - ./nginx/log/nginx:/var/log/nginx
         links:
             - php
+            - php8
             - mysql
         healthcheck:
             test: ["CMD", "service", "nginx", "status"]
@@ -34,25 +35,6 @@ services:
         networks:
             webphp:
                 ipv4_address: 10.201.0.2
-    apache:
-        build:
-            context: ./apache
-            dockerfile: Dockerfile
-        restart: always
-        container_name: c-apache
-        volumes:
-            - ./code:/var/www
-            - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
-            - ./apache/sites-enabled:/usr/local/apache2/conf/sites-enabled
-        depends_on:
-            - php
-            - php8
-            - mysql
-        ports:
-            - "82:80"
-        networks:
-            webphp:
-                ipv4_address: 10.201.0.3
     php:
         build:
             context: ./php
@@ -69,7 +51,7 @@ services:
             # - memcached
         networks:
             webphp:
-                ipv4_address: 10.201.0.4
+                ipv4_address: 10.201.0.3
     php8:
         build:
             context: ./php
@@ -86,7 +68,7 @@ services:
             # - memcached
         networks:
             webphp:
-                ipv4_address: 10.201.0.5
+                ipv4_address: 10.201.0.4
     mysql: 
         build:
             context: ./mysql
@@ -104,7 +86,7 @@ services:
             - MYSQL_ROOT_PASSWORD=123456
         networks:
             webphp:
-                ipv4_address: 10.201.0.6
+                ipv4_address: 10.201.0.5
     redis:
         container_name: c-redis
         image: redis
@@ -120,7 +102,26 @@ services:
             retries: 5
         networks:
             webphp:
-                ipv4_address: 10.201.0.7
+                ipv4_address: 10.201.0.6
+    # apache:
+    #     build:
+    #         context: ./apache
+    #         dockerfile: Dockerfile
+    #     restart: always
+    #     container_name: c-apache
+    #     volumes:
+    #         - ./code:/var/www
+    #         - ./apache/httpd.conf:/usr/local/apache2/conf/httpd.conf
+    #         - ./apache/sites-enabled:/usr/local/apache2/conf/sites-enabled
+    #     depends_on:
+    #         - php
+    #         - php8
+    #         - mysql
+    #     ports:
+    #         - "82:80"
+    #     networks:
+    #         webphp:
+    #             ipv4_address: 10.201.0.7
     # memcached:
     #     container_name: c-memcached
     #     image: memcached
