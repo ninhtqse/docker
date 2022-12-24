@@ -44,11 +44,10 @@ RUN docker-php-ext-install gd
 
 
 #xdebug
-# RUN yes | pecl install xdebug \
-#     && docker-php-ext-enable xdebug
-#     && echo "xdebug.mode=debug" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
-#     && echo "xdebug.client_host = host.docker.internal" >>
-# /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+RUN yes | pecl install xdebug \
+  && docker-php-ext-enable xdebug \
+  && echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
+  && echo "xdebug.client_host = host.docker.internal"
 
 #cho watermark bị lỗi không đọc được file jpg
 # command check : php -r 'print_r(gd_info());'
