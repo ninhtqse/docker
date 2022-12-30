@@ -44,7 +44,7 @@ RUN docker-php-ext-install gd
 
 
 #xdebug
-RUN yes | pecl install xdebug \
+RUN yes | pecl install xdebug-3.1.0 \
   && docker-php-ext-enable xdebug \
   && echo "xdebug.mode=coverage" >> /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini \
   && echo "xdebug.client_host = host.docker.internal"
