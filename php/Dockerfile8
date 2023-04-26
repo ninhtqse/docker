@@ -57,6 +57,9 @@ RUN yes | pecl install xdebug-3.1.0 \
 #Exif
 RUN docker-php-ext-install exif
 
+#install lib socket
+RUN docker-php-ext-install sockets
+
 #cho watermark bị lỗi không đọc được file jpg
 # command check : php -r 'print_r(gd_info());'
 RUN apt-get update && apt-get install -y \
