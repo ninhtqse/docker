@@ -1,6 +1,5 @@
-# Start the container
+# Build & Up Docker
 
 ```bash
     sh build.sh
-    docker-compose up -d
 ```

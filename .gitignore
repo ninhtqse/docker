@@ -1,2 +1,4 @@
 /nginx/log
 /apache/logs
+/code/html
+/mysql
