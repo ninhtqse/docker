@@ -1,6 +1,6 @@
 FROM php:8.1-fpm
 
-WORKDIR /var/www
+WORKDIR /var/www/html
 
 LABEL maintainer="ninhtqse <ninhtqse@gmail.com>"
 

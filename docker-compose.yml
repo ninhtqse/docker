@@ -18,7 +18,7 @@ services:
             - "81:80"
             - "443:443"
         volumes:
-            - ./code:/var/www
+            - ./code/html:/var/www/html
             - ./nginx/nginx.conf:/etc/nginx/nginx.conf
             - ./nginx/sites-enabled:/etc/nginx/sites-enabled
             - ./nginx/ssl:/etc/nginx/ssl
@@ -42,7 +42,7 @@ services:
         restart: always
         user: www-data
         volumes:
-            - ./code:/var/www
+            - ./code/html:/var/www/html
             - ./php/crontab:/etc/cron.d/crontab
         links: 
             - mysql
