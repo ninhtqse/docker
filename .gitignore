@@ -1,5 +1,6 @@
 /nginx/log
 /apache/logs
+/code/html
 /mysql/dbdata
 /nginx/sites-enabled
 *.log
