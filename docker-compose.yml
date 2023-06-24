@@ -18,7 +18,7 @@ services:
             - "81:80"
             - "443:443"
         volumes:
-            - ./code/html:/var/www/html
+            # - ./code/html:/var/www/html
             - ./nginx/nginx.conf:/etc/nginx/nginx.conf
             - ./nginx/sites-enabled:/etc/nginx/sites-enabled
             - ./nginx/ssl:/etc/nginx/ssl
