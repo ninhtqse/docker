@@ -17,7 +17,7 @@ volumes:
 services:
   nginx:
     image: nginx:alpine
-    container_name: factorx-nginx
+    container_name: c-nginx
     restart: unless-stopped
     ports:
       - 8000:80
@@ -40,8 +40,8 @@ services:
         user: root
       context: ./docker/php
       dockerfile: Dockerfile
-    image: factorx
-    container_name: factorx-php
+    image: i-php
+    container_name: c-php
     entrypoint: sh /bin/entrypoint.sh php-fpm
     restart: unless-stopped
     working_dir: /var/www/html
@@ -66,15 +66,15 @@ services:
         ipv4_address: 10.202.0.3
   db:
     image: mysql:8.0
-    container_name: factorx-db
+    container_name: c-db
     restart: unless-stopped
     command: [--default-authentication-plugin=mysql_native_password, --max-allowed-packet=10GB, --log_bin_trust_function_creators=1]
     ports:
       - '3382:3306'
     environment:
-      MYSQL_DATABASE: factorx
+      MYSQL_DATABASE: sample
       MYSQL_ROOT_PASSWORD: Ka3%u6Ae
-      MYSQL_USER: factorx
+      MYSQL_USER: foo
       MYSQL_PASSWORD: hA*+BEAe
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql
@@ -91,7 +91,7 @@ services:
       webphp:
         ipv4_address: 10.202.0.4
   redis:
-    container_name: factorx-redis
+    container_name: c-redis
     restart: unless-stopped
     image: 'bitnami/redis:latest'
     environment:
@@ -108,7 +108,7 @@ services:
         ipv4_address: 10.202.0.5
   mailcatcher:
     image: schickling/mailcatcher
-    container_name: factorx-mailcatcher
+    container_name: c-mailcatcher
     restart: unless-stopped
     ports:
       - 1080:1080
