@@ -214,3 +214,12 @@ services:
     #     restart: always
     #     depends_on:
     #         - prometheus
+    # sqlserver:
+    #     image: mcr.microsoft.com/mssql/server:2022-latest
+    #     container_name: sqlserver
+    #     environment:
+    #     - ACCEPT_EULA=Y
+    #     - SA_PASSWORD=Password_123#
+    #     ports:
+    #     - "1433:1433"
+    #     restart: unless-stopped
