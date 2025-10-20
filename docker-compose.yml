@@ -1,28 +1,33 @@
-version: "3.7"
+version: "3.8"
 
 networks:
   webphp:
     driver: bridge
     ipam:
       config:
-        - subnet: 10.201.0.0/16
-          gateway: 10.201.0.1
+        - subnet: 10.203.0.0/16
+          gateway: 10.203.0.1
+
+volumes:
+    mysql-data:
+    postgres-data:
+    vendor:
+
 services:
     nginx:
         build:
             context: ./nginx
             dockerfile: Dockerfile
-        container_name: c-nginx
+        container_name: d-nginx
         restart: always
         ports:
             - "81:80"
-            - "443:443"
         volumes:
-            - ./code/html:/var/www/html
+            - ./code/html:/var/www/html:ro
             - ./nginx/nginx.conf:/etc/nginx/nginx.conf
             - ./nginx/sites-enabled:/etc/nginx/sites-enabled
             - ./nginx/ssl:/etc/nginx/ssl
-            - ./nginx/log/nginx:/var/log/nginx
+            - ./nginx/log:/var/log/nginx
         links:
             - php
             - mysql
@@ -33,20 +38,25 @@ services:
             retries: 5
         networks:
             webphp:
-                ipv4_address: 10.201.0.2
+                ipv4_address: 10.203.0.2
     php:
         build:
             context: ./php
             dockerfile: Dockerfile
-        container_name: c-php
+        container_name: d-php
         restart: always
         user: www-data
         volumes:
-            - ./code/html:/var/www/html
+            - ./code/html:/var/www/html:cached
             - ./php/crontab:/etc/cron.d/crontab
-        links: 
+            # Improve
+            - type: volume
+              source: post-call-survey
+              target: /var/www/html/example/vendor
+        links:
             - mysql
             - redis
+            - postgres
         healthcheck:
             interval: 10s
             timeout: 3s
@@ -54,24 +64,26 @@ services:
             start_period: 30s
         networks:
             webphp:
-                ipv4_address: 10.201.0.4
-    mysql: 
-        build:
-            context: ./mysql
-            dockerfile: Dockerfile
-        container_name: c-mysql
+                ipv4_address: 10.203.0.3
+    mysql:
+        image: mysql:8.0
+        container_name: d-mysql
+        restart: unless-stopped
         command: [--default-authentication-plugin=mysql_native_password, --max-allowed-packet=10GB, --log_bin_trust_function_creators=1]
-        ports: 
-            - "3309:3306"
-        restart: always
-        volumes:
-            - ./mysql/config/mysql.cnf:/etc/mysql/conf.d/custom.cnf:ro
-            - ./mysql/dbdata:/var/lib/mysql
+        ports:
+            - '3309:3306'
         environment:
-            - MYSQL_DATABASE=sample
-            - MYSQL_ROOT_PASSWORD=123456
-            - MYSQL_USER=user
-            - MYSQL_PASSWORD=123456
+            MYSQL_DATABASE: sample
+            MYSQL_ROOT_PASSWORD: Ka3%u6Ae
+            MYSQL_USER: foo
+            MYSQL_PASSWORD: hA*+BEAe
+            SERVICE_TAGS: dev
+            SERVICE_NAME: mysql
+        volumes:
+            - ./mysql:/docker-entrypoint-initdb.d:ro
+            - ./mysql/my.cnf:/etc/mysql/conf.d/my_custom.cnf
+            # Improve
+            - mysql-data:/var/lib/mysql
         healthcheck:
             test: mysqladmin ping
             interval: 3s
@@ -79,9 +91,9 @@ services:
             retries: 3
         networks:
             webphp:
-                ipv4_address: 10.201.0.5
+                ipv4_address: 10.203.0.4
     redis:
-        container_name: c-redis
+        container_name: d-redis
         image: redis
         restart: always
         environment:
@@ -95,4 +107,19 @@ services:
             retries: 5
         networks:
             webphp:
-                ipv4_address: 10.201.0.6
+                ipv4_address: 10.203.0.5
+    postgres:
+        image: postgres:15
+        container_name: d-postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: myuser
+            POSTGRES_PASSWORD: mypassword
+            POSTGRES_DB: mydb
+        ports:
+            - "5432:5432"
+        volumes:
+            - postgres-data:/var/lib/postgresql/data
+        networks:
+            webphp:
+                ipv4_address: 10.203.0.6
