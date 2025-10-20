@@ -51,7 +51,7 @@ services:
             - ./php/crontab:/etc/cron.d/crontab
             # Improve
             - type: volume
-              source: post-call-survey
+              source: example
               target: /var/www/html/example/vendor
         links:
             - mysql
