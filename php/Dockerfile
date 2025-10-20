@@ -1,4 +1,4 @@
-FROM php:8.1-fpm
+FROM php:8.2-fpm
 
 WORKDIR /var/www/html
 
@@ -17,7 +17,7 @@ RUN apt-get update && apt-get install -y \
   unzip \
   git \
   curl \
-  cron 
+  cron
 
 # Install PHP libraries
 RUN apt-get update && apt-get install -y \
@@ -68,10 +68,16 @@ RUN apt-get update && apt-get install -y \
   && docker-php-ext-configure gd --with-freetype --with-jpeg \
   && docker-php-ext-install -j$(nproc) gd
 
+# Install PostgreSQL driver for PHP
+RUN apt-get update \
+  && apt-get install -y libpq-dev \
+  && docker-php-ext-install pdo_pgsql \
+  && rm -rf /var/lib/apt/lists/*
+
 # Config php.ini
 COPY config/php.ini /usr/local/etc/php/
 
-# Heathcheck
+# Healthcheck
 COPY docker-healthcheck.sh /usr/local/bin/docker-healthcheck
 RUN chmod +x /usr/local/bin/docker-healthcheck
 HEALTHCHECK --interval=10s --timeout=3s --retries=3 CMD ["docker-healthcheck"]
@@ -79,9 +85,7 @@ HEALTHCHECK --interval=10s --timeout=3s --retries=3 CMD ["docker-healthcheck"]
 # Install composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-RUN chown www-data:www-data /var
-RUN usermod -u 1000 www-data
-
+RUN chown -R www-data:www-data /var/www/html
 USER www-data
 
 CMD ["php-fpm"]
